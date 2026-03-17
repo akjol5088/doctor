@@ -7,13 +7,23 @@ const SocketContext = createContext(null);
 
 // Get server URL based on current environment
 const getServerUrl = () => {
+  // 1. Check for Environment Variable (best for production like Vercel)
+  if (import.meta.env.VITE_SERVER_URL) return import.meta.env.VITE_SERVER_URL;
+
   if (typeof window === 'undefined') return 'http://localhost:5000';
-  const { hostname } = window.location;
-  // If we are on a real device/IP or deployed, we need to point to the server
-  // For demo purposes, we'll try to guess if it's production or local
-  if (hostname === 'localhost' || hostname === '127.0.0.1') return 'http://localhost:5000';
-  return `http://${hostname}:5000`; // Attempt local network IP
+  
+  const { hostname, protocol } = window.location;
+  
+  // 2. Localhost detection
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:5000';
+  }
+
+  // 3. Fallback for Local Network or Vercel Demo mode
+  // On Vercel, it should fallback to isDemo mode because :5000 won't exist
+  return `${protocol}//${hostname}:5000`;
 };
+
 
 export const SocketProvider = ({ children }) => {
   const { user } = useAuth();
