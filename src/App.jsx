@@ -139,25 +139,6 @@ const Topbar = ({ lang, setLang, t, page, setPage }) => {
 
       <div className="topbar-div" />
 
-      <div className="kpi-strip">
-        <div className="kpi">
-          <span className="label">{t.car}</span>
-          <span className="val b">{drivers.length}</span>
-        </div>
-        <div className="kpi">
-          <span className="label">{t.free}</span>
-          <span className="val g">{idleCount}</span>
-        </div>
-        <div className="kpi">
-          <span className="label">{t.busy}</span>
-          <span className="val y">{busyCount}</span>
-        </div>
-        <div className="topbar-div" />
-        <div className="kpi">
-          <span className="label">💰 {t.earnings}</span>
-          <span className="val g" style={{ fontSize: '1.2rem', color: '#34C759' }}>{stats.totalEarnings.toLocaleString()} {t.som}</span>
-        </div>
-      </div>
 
       <div className="topbar-right">
         <div
@@ -230,9 +211,13 @@ const AppShell = () => {
         {renderPage()}
       </div>
 
-      {/* Mobile bottom navigation */}
+      {/* Mobile bottom navigation (only on small screens) */}
+      <style>{`
+        @media (min-width: 769px) { .bottom-nav { display: none !important; } }
+      `}</style>
       <BottomNav page={page} setPage={setPage} t={t} />
     </div>
+
   );
 };
 

@@ -45,29 +45,35 @@ export const SocketProvider = ({ children }) => {
   const sim = useSimulator();
 
   useEffect(() => {
-    if (!user) return;
-
     const SERVER = getServerUrl();
     console.log('Connecting to:', SERVER);
 
+    // Connection timeout for demo fallback
+    const connectionTimeout = setTimeout(() => {
+      if (!connected) {
+        console.log('Connection slow — entering DEMO mode');
+        setIsDemo(true);
+      }
+    }, 3000);
+
     const socket = io(SERVER, { 
       transports: ['websocket'],
-      reconnectionAttempts: 3,
-      timeout: 5000
+      reconnectionAttempts: 5,
+      timeout: 10000
     });
     
     socketRef.current = socket;
 
     socket.on('connect', () => {
+      clearTimeout(connectionTimeout);
       setConnected(true);
       setIsDemo(false);
     });
 
     socket.on('connect_error', () => {
-      // If server is unreachable after a few tries, switch to demo/simulator
-      if (!connected) {
+      // Re-trigger timeout logic if it fails early
+      if (!connected && !isDemo) {
         setIsDemo(true);
-        setConnected(true); // "Connected" to simulator
       }
     });
 
@@ -90,8 +96,11 @@ export const SocketProvider = ({ children }) => {
       }
     });
 
-    return () => socket.disconnect();
-  }, [user, connected]);
+    return () => {
+      clearTimeout(connectionTimeout);
+      socket.disconnect();
+    };
+  }, [user]);
 
   // Unified actions
   const acceptOrder = useCallback((orderId, driverId) => {
@@ -112,6 +121,7 @@ export const SocketProvider = ({ children }) => {
       setOrders(prev => prev.filter(o => o._id !== orderId));
     }
   }, [isDemo]);
+
 
   // Provide either server data or simulator data
   const value = {
